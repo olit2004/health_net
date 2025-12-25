@@ -1,0 +1,268 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+ 
+}
+
+// ========== ENUMS ==========
+enum UserRole {
+  ADMIN
+  DOCTOR
+  PATIENT
+  LAB_TECH
+  FIRST_RESPONDER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BloodType {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum FacilityType {
+  HOSPITAL
+  CLINIC
+  LAB
+  PHARMACY
+}
+
+enum AdminLevel {
+  SUPER_ADMIN
+  MANAGER
+  STAFF
+}
+
+// ========== CORE ENTITIES ==========
+model User {
+  id           Int       @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  phone        String?
+  role         UserRole
+  status       String    @default("active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  // relations
+  patient Patient?
+  doctor  Doctor?
+  admin   Admin?
+
+  @@map("users")
+}
+
+model Patient {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique @map("user_id")
+  dob       DateTime?
+  gender    Gender?
+  address   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  // Relations
+  diagnoses     Diagnosis[]
+  labResults    LabResult[]
+  appointments  Appointment[]
+  insurance     Insurance?
+  emergencyInfo EmergencyInfo?
+  assignments   Assignment[] // Added back-relation for Assignment
+
+  @@map("patients")
+}
+
+model Doctor {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique @map("user_id")
+  specialization String?
+  licenseNo      String?   @map("license_no")
+  phone          String?
+  email          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  // Where doctor works (many-to-many)
+  doctorFacilities DoctorFacility[]
+
+  // Medical activities
+  diagnoses    Diagnosis[]
+  labResults   LabResult[]
+  appointments Appointment[]
+  assignments  Assignment[] // Added back-relation for Assignment
+
+  @@map("doctors")
+}
+
+model DoctorFacility {
+  id         Int      @id @default(autoincrement())
+  doctorId   Int      @map("doctor_id")
+  facilityId Int      @map("facility_id")
+  schedule   Json? // { monday: "9-5", tuesday: "10-6", ... }
+  status     String   @default("active")
+  joinedAt   DateTime @default(now()) @map("joined_at")
+
+  doctor   Doctor   @relation(fields: [doctorId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@unique([doctorId, facilityId])
+  @@map("doctor_facilities")
+}
+
+// ========== FACILITY-TIED MEDICAL RECORDS ==========
+model Diagnosis {
+  id            Int      @id @default(autoincrement())
+  patientId     Int      @map("patient_id")
+  doctorId      Int      @map("doctor_id")
+  facilityId    Int      @map("facility_id")
+  diagnosisText String   @map("diagnosis_text")
+  treatmentPlan String?  @map("treatment_plan")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  doctor   Doctor   @relation(fields: [doctorId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@map("diagnoses")
+}
+
+model LabResult {
+  id         Int      @id @default(autoincrement())
+  patientId  Int      @map("patient_id")
+  doctorId   Int      @map("doctor_id")
+  facilityId Int      @map("facility_id")
+  filePath   String   @map("file_path")
+  resultType String?  @map("result_type")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  doctor   Doctor   @relation(fields: [doctorId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@map("lab_results")
+}
+
+model Appointment {
+  id         Int               @id @default(autoincrement())
+  doctorId   Int               @map("doctor_id")
+  patientId  Int               @map("patient_id")
+  facilityId Int               @map("facility_id")
+  dateTime   DateTime          @map("date_time")
+  reason     String?
+  status     AppointmentStatus @default(SCHEDULED)
+
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  doctor   Doctor   @relation(fields: [doctorId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@map("appointments")
+}
+
+// ========== FACILITY MODEL ==========
+model Facility {
+  id              Int           @id @default(autoincrement())
+  name            String
+  facilityType    FacilityType? @map("facility_type")
+  region          String?
+  locationAddress String?       @map("location_address")
+  contactPhone    String?       @map("contact_phone")
+  licenseNumber   String?       @map("license_number")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  // Doctors working here
+  doctorFacilities DoctorFacility[]
+
+  // Medical records created here
+  diagnoses    Diagnosis[]
+  labResults   LabResult[]
+  appointments Appointment[]
+
+  // Admins managing this facility
+  admins Admin[]
+
+  @@map("facilities")
+}
+
+model Admin {
+  id         Int         @id @default(autoincrement())
+  userId     Int         @unique @map("user_id")
+  facilityId Int         @map("facility_id")
+  adminLevel AdminLevel? @map("admin_level")
+  department String?
+
+  user     User     @relation(fields: [userId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@map("admins")
+}
+
+// ========== OTHER MODELS ==========
+model Assignment {
+  id           Int      @id @default(autoincrement())
+  doctorId     Int      @map("doctor_id")
+  patientId    Int      @map("patient_id")
+  assignedDate DateTime @default(now()) @map("assigned_date")
+
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@unique([doctorId, patientId])
+  @@map("assignments")
+}
+
+model Insurance {
+  id           Int      @id @default(autoincrement())
+  patientId    Int      @unique @map("patient_id")
+  providerName String   @map("provider_name")
+  policyNumber String   @map("policy_number")
+  validUntil   DateTime @map("valid_until")
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@map("insurance")
+}
+
+model EmergencyInfo {
+  id               Int        @id @default(autoincrement())
+  patientId        Int        @unique @map("patient_id")
+  bloodType        BloodType? @map("blood_type")
+  allergies        String?
+  chronicDiseases  String?    @map("chronic_diseases")
+  emergencyContact String?    @map("emergency_contact")
+  createdAt        DateTime   @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@map("emergency_info")
+}

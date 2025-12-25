@@ -1,0 +1,1 @@
+// # Optional — if auth logic becomes complex (e.g. rate limiting, lockout)

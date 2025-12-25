@@ -1,0 +1,1 @@
+// # Generic validator(req, schema) → throws ValidationError if fails
