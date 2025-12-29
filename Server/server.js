@@ -2,6 +2,8 @@ import express from "express"
 import authRoute  from "./Api/auth/auth.routes.js"
 import cookieParser from "cookie-parser";
 import userRoute  from "./Api/users/user.routes.js"
+import patientRoute from "./Api/patients/patients.routes.js"
+import doctorRoute  from "./Api/doctors/doctors.routes.js"
 
 
 
@@ -23,3 +25,5 @@ app.use(cookieParser());
 
 app.use(authRoute)
 app.use(userRoute)
+app.use(patientRoute)
+app.use(doctorRoute)

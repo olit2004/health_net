@@ -2,4 +2,15 @@
 // # GET    /api/v1/doctors/my-patients
 
 
-const{address , name }=  requestAnimationFrame.body 
+// routes/doctor.js
+import express from "express";
+import { listDoctorsController, getDoctorController } from "./doctors.controller.js";
+
+import { onlyAdmin } from "../../middleware/onlyAdmin.js";
+
+const router = express.Router();
+
+router.get("/doctors",  onlyAdmin, listDoctorsController);
+router.get("/doctors/:id", getDoctorController);
+
+export default router;
