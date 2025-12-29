@@ -11,9 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
- 
 }
-
 
 // ENUMS
 
@@ -21,8 +19,8 @@ enum UserRole {
   ADMIN
   DOCTOR
   PATIENT
-  LAB_TECH        
-  FIRST_RESPONDER 
+  LAB_TECH
+  FIRST_RESPONDER
 }
 
 enum AppointmentStatus {
@@ -66,10 +64,6 @@ enum InsuranceStatus {
   UNINSURED
 }
 
-
-
-
-
 // CORE USER
 
 model User {
@@ -89,27 +83,23 @@ model User {
   admin      Admin?
   labUploads LabResult[] @relation("LabUploader")
 
-
   @@map("users")
 }
-
 
 // PATIENT
 
 model Patient {
-  id               Int             @id @default(autoincrement())
-  upi              String?         @unique @map("patient_code") // Unique Patient Identifier 
-  userId           Int             @unique @map("user_id")
-  dob              DateTime?
-  gender           Gender?
-  address          String?
-  qrToken          String?         @unique @map("qr_token")    // For tokenized QR links [cite: 141]
-  
-  
-  insuranceStatus   InsuranceStatus @default(UNINSURED) @map("insurance_status")
+  id      Int       @id @default(autoincrement())
+  upi     String?   @unique @map("patient_code") // Unique Patient Identifier 
+  userId  Int       @unique @map("user_id")
+  dob     DateTime?
+  gender  Gender?
+  address String?
+  qrToken String?   @unique @map("qr_token") // For tokenized QR links [cite: 141]
 
+  insuranceStatus InsuranceStatus @default(UNINSURED) @map("insurance_status")
 
-  createdAt        DateTime        @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])
 
@@ -121,7 +111,6 @@ model Patient {
 
   @@map("patients")
 }
-
 
 // DOCTOR
 
@@ -145,7 +134,6 @@ model Doctor {
   @@map("doctors")
 }
 
-
 // FACILITY
 
 model Facility {
@@ -166,7 +154,6 @@ model Facility {
 
   @@map("facilities")
 }
-
 
 // DOCTOR ↔ FACILITY
 
@@ -203,7 +190,6 @@ model Diagnosis {
   @@map("diagnoses")
 }
 
-
 //lab result 
 model LabResult {
   id          Int      @id @default(autoincrement())
@@ -215,9 +201,9 @@ model LabResult {
   resultType  String?
   createdAt   DateTime @default(now()) @map("created_at")
 
-  patient  Patient  @relation(fields: [patientId], references: [id])
-  doctor   Doctor?  @relation(fields: [doctorId], references: [id])
-  facility Facility @relation(fields: [facilityId], references: [id])
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  doctor    Doctor?  @relation(fields: [doctorId], references: [id])
+  facility  Facility @relation(fields: [facilityId], references: [id])
   createdBy User     @relation("LabUploader", fields: [createdById], references: [id])
 
   @@index([patientId])
@@ -243,7 +229,6 @@ model Appointment {
   @@map("appointments")
 }
 
-
 // EMERGENCY INFO (QR SAFE) 
 
 model EmergencyInfo {
@@ -260,7 +245,6 @@ model EmergencyInfo {
 
   @@map("emergency_info")
 }
-
 
 // ASSIGNMENTS (Doctor ↔ Patient)
 

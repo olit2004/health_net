@@ -4,102 +4,92 @@
 // refreshToken()
 // authControllers.js
 
-
-import jwt from "jsonwebtoken"
-import bcrypt from "bcrypt";
+import * as userService from '../../Services/user.js';
+import {setToken,removeToken}  from "../../lib/jwt.js"
 import dotenv from"dotenv";
+
+
 dotenv.config()
 const saltRound = parseInt(process.env.saltRound);
 const refresh_secret = process.env.refresh_secret
 
-import { registerUser,loginUser } from "./authService.js";
-import { setToken,removeToken } from "../../lib/jwt.js";
-import { checkUser } from "../User/userService.js";
 
 
+//controller to handle  user registration
 
-// Handle user login
+export async function registerController(req, res) {
+  try {
+    console.log("this started running");
+    const userData = req.validatedData;
+    const facilityId = req.facilityId;
 
-export const loginController = async (req, res,next) => {
-    const {email, password}= req.body;
-    try {
+    const newUser = await userService.createUserWithProfile({ userData, facilityId });
 
-    if (!email ||!password){
-      new Error ("Both email and password is required");
+    return res.status(201).json({
+      success: true,
+      message: `${userData.role} registered successfully`,
+      user: newUser
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    if (error.code === 'P2002') {
+      return res.status(409).json({ success: false, message: "Email already exists" });
     }
-    const user = await loginUser({email,password});
-    const payload={ id:user.id,role:user.role};
+
+    return res.status(500).json({ 
+      success: false,
+      message: "Internal server error during registration" 
+    });
+  }
+}
+
+ 
+//controller to handle  user login
+export async function loginController(req, res) {
+  try {
+    console.log("this is running fine ")
+    console.log(req.body)
+    const { email, password } = req.body;
+    console.log("hello",email,password)
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password required" });
+    }
+
+    const  user= await userService.loginService({email, password});
+    const payload={id:user.id,firstName:user.firstName,role:user.role}
     setToken(res,payload)
-    
-    res.status(200).json(user)
-      
-    }catch(err){
-      
-        next (err) 
-    }
+    res.json({
+           user});
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(401).json({ error: err.message });
+  }
 }
 
-
-
-// Handle new user registration (admin only)
-
-export const registerController = async (req, res) => {
-    const {email, password , firstName,lastName,address, avatarUrl, phone} =req.body;
-    try{
-      // check if the neccassyary dat ais provided
-
-          if (!email||!password||!firstName){
-            return res.status(400).json({mssg:"email, password and first name is required"})
-
-    }
-      // check bcrypt hashing 
-    const salt = await bcrypt.genSalt(saltRound);
-    const hashed_password = await  bcrypt.hash(password,salt);
-
-
-
-    const user= await registerUser({
-          email, 
-          password:hashed_password, 
-          first_name:firstName,
-          role:"MEMBER",
-          last_name:lastName,
-          address,
-          avatar_url:avatarUrl, 
-          phone
-      })
-    res.status(201).json(user)
-      
-  }catch(err){
-    console.log("ERROR: couldn't reagister the user",err.message)
-    res.status(500).json({mssg:err.message});
-}
-}
-
-
-
-
-    // Handle user logout
-
-
-export const logoutController = async (req, res) => {
+//controller to handle  user logout 
+export async function logoutController(req,res){
   try{
     removeToken(res)
-    res.status(200).json({mssg:"loged out successfully"})
+    res.status(200).json({message:"loged out successfully"})
 
   }catch(err){
     console.log("ERROR: couldn't logout ",err)
-    res.status(400).json({err})
+    res.status(400).json({message:err})
   }
+
+
 
 }
 
+//controller to handle  user refresh token
 
-export const refreshTokenController = async (req, res) => {
-     const refresh_token = req.cookies.rft 
+export async function  refreshController(req,res){
+  const refresh_token = req.cookies.rft 
   try{
     if (!refresh_token){
-      res.status(400).json({mssg:" no refersh token provideds"})
+      res.status(400).json({message:" no refersh token provideds"})
     }
     const decoded = jwt.verify(refresh_token,refresh_secret);
     const  payload ={
@@ -107,15 +97,14 @@ export const refreshTokenController = async (req, res) => {
       role:decoded.role
     }
     setToken(res,payload);
-    res.status(200).json({mssg:"token refereshed"});
+    res.status(200).json({message:"token refereshed"});
 }catch(err){
 
   console.log(" ERROR: couldn't refersh token ",err);
-  res.status(400).jon({mssg:"server error  couldn't reffresh token"})
-}
+  res.status(400).jon({message:"server error  couldn't reffresh token"})
 }
 
-
+}
 
 
 

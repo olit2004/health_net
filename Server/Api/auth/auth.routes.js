@@ -6,36 +6,32 @@
 
 import express from "express";
 import { requireAuth } from "../../middleware/requireAuth.js";
-import { validateRegister } from "../../middleware/validateRegister.js";
+import { validateRequest } from "../../middleware/validateRequest.js";
+import {registerValidator,loginValidator} from "../../lib/validator.js"
+import {onlyAdmin} from "../../middleware/onlyAdmin.js"
 
-import {
-    loginController,
-    registerController,
-    logoutController,
-    refreshTokenController,
-    forgotPasswordController,
-    resetPasswordController,
-    getCurrentUserController
-} from "../../controllers/authControllers.js";
+import {registerController,loginController} from "./auth.controller.js";
 
 const route = express.Router();
 
 
-
-// Public routes
+route.post("/register", onlyAdmin, validateRequest(registerValidator),registerController)
 route.post("/login", loginController);
-route.post("/forgot-password", forgotPasswordController);
-route.post("/reset-password", resetPasswordController);
 
-// Admin only route
-route.post("/register", requireAuth, validateRegister, registerController);
 
-// Protected routes (all authenticated users)
-route.post("/logout", requireAuth, logoutController);
-route.post("/refresh-token", requireAuth, refreshTokenController);
-route.get("/me", requireAuth, getCurrentUserController);
 
-export default route;
+
+
+
+
+
+
+
+
+export default route ;
+
+
+
 
 
 
