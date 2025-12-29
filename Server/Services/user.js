@@ -2,6 +2,10 @@ import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 
 
+
+
+
+
 export async function getAdmin(id) {
   const admin = await prisma.admin.findUnique({
     where: { userId:id },
@@ -12,6 +16,79 @@ export async function getAdmin(id) {
   });
 
   return admin;
+}
+
+
+
+// service to retrieve the user information form the data dase 
+
+
+export async function getMyProfile(userId) {
+  return prisma.user.findUnique({
+    where: { id: Number(userId) },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      phone: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+
+      patient: {
+        select: {
+          dob: true,
+          gender: true,
+          address: true,
+          insuranceStatus: true,
+          emergencyInfo: {
+            select: {
+              bloodType: true,
+              allergies: true,
+              chronicDiseases: true,
+              emergencyContact: true,
+              lastUpdatedAt: true,
+            },
+          },
+        },
+      },
+      doctor: {
+        select: {
+          specialization: true,
+          licenseNo: true,
+          email: true,
+          phone: true,
+          doctorFacilities: {
+            select: {
+              facility: {
+                select: {
+                  id: true,
+                  name: true,
+                  facilityType: true,
+                  locationAddress: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      admin: {
+        select: {
+          adminLevel: true,
+          department: true,
+          facility: {
+            select: {
+              id: true,
+              name: true,
+              facilityType: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
 
@@ -119,4 +196,136 @@ export async function loginService({email, password}) {
   return user;
  
 
+}
+
+
+
+
+
+// service to  get all users by the   admin
+
+export async function listUsers({ page = 1, filters = {} }) {
+  const take = 20; 
+  const skip = (page - 1) * take;
+
+ 
+  const where = {};
+  if (filters.role) {
+    where.role = filters.role;
+  }
+  if (filters.email) {
+    where.email = { contains: filters.email, mode: "insensitive" };
+  }
+  if (filters.firstName) {
+    where.firstName = { contains: filters.firstName, mode: "insensitive" };
+  }
+  if (filters.lastName) {
+    where.lastName = { contains: filters.lastName, mode: "insensitive" };
+  }
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return {
+    users,
+    pagination: {
+      page,
+      pageSize: take,
+      total,
+      totalPages: Math.ceil(total / take),
+    },
+  };
+}
+
+
+
+// get deatiled information about  the  user 
+export async function getUserById(id) {
+  const user = await prisma.user.findUnique({
+    where: { id: Number(id) },
+    include: { admin: true, doctor: true, patient: true }
+  });
+
+  return user;
+}
+
+
+
+
+
+
+export async function inactivateUserById(id) {
+  const userId = Number(id);
+
+  // Check if user exists
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, status: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Update status to inactive
+  return prisma.user.update({
+    where: { id: userId },
+    data: { status: "inactive" },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      status: true,
+      updatedAt: true,
+    },
+  });
+}
+
+
+// Update user profile (safe fields only)
+export async function updateUserProfile(id, profileData) {
+  return prisma.user.update({
+    where: { id: Number(id) },
+    data: {
+      firstName: profileData.firstName,
+      lastName: profileData.lastName,
+      phone: profileData.phone,
+      // address and emergencyContact live in Patient relation
+      patient: profileData.address || profileData.emergencyContact
+        ? {
+            update: {
+              address: profileData.address,
+              emergencyInfo: profileData.emergencyContact
+                ? {
+                    upsert: {
+                      update: { emergencyContact: profileData.emergencyContact },
+                      create: { emergencyContact: profileData.emergencyContact },
+                    },
+                  }
+                : undefined,
+            },
+          }
+        : undefined,
+    },
+    include: {
+      patient: { include: { emergencyInfo: true } },
+    },
+  });
 }
