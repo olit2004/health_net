@@ -27,8 +27,9 @@ export async function onlyAdmin (req, res, next) {
       if (!admin) {
         return res.status(401).json({ message: "not authorized" });
       }
-
+      req.user=  decoded
       req.facilityId = admin.facilityId;
+      req.adminlevel=admin.adminLevel;
       return next();
     }
 

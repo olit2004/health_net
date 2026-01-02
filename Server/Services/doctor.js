@@ -23,6 +23,8 @@ export async function listDoctors(page = 1, limit = 20, search = "", facilityId)
               { user: { lastName: { contains: search, mode: "insensitive" } } },
               { user: { email: { contains: search, mode: "insensitive" } } },
               { specialization: { contains: search, mode: "insensitive" } },
+              { specialization: { contains: search, mode: "insensitive" } },  // SEARCH   USER NAME 
+
             ],
           }
         : {}),
@@ -56,7 +58,7 @@ export async function listDoctors(page = 1, limit = 20, search = "", facilityId)
 
 
 
-// Get doctor details with facilities
+// Get doctor details with facilities  USERNAME 
 export async function getDoctorById(id) {
   return prisma.doctor.findUnique({
     where: { id: Number(id) },

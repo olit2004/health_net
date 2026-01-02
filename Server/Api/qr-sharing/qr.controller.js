@@ -1,4 +1,0 @@
-
-//  # generateQR(),
-//   viewSharedRecord(token), 
-//   revokeToken()

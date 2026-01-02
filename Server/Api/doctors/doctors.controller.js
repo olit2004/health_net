@@ -21,10 +21,6 @@ export async function listDoctorsController(req, res) {
 export async function getDoctorController(req, res) {
         try {
             const { id } = req.params;
-            if (req.user.role !== "ADMIN" && req.user.id !== Number(id)) {
-            return res.status(403).json({ success: false, message: "Forbidden: only admins or the doctor themselves can view" });
-            }
-
             const doctor = await getDoctorById(id);
             if (!doctor) {
             return res.status(404).json({ success: false, message: "Doctor not found" });

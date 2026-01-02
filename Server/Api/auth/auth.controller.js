@@ -15,9 +15,9 @@ const refresh_secret = process.env.refresh_secret
 
 
 
-//controller to handle  user registration
 
-export async function registerController(req, res) {
+//controller to handle  user registration
+export async function registerController(req, res,next) {
   try {
     console.log("this started running");
     const userData = req.validatedData;
@@ -46,46 +46,49 @@ export async function registerController(req, res) {
 
  
 //controller to handle  user login
-export async function loginController(req, res) {
+export async function loginController(req, res,next) {
   try {
     console.log("this is running fine ")
     console.log(req.body)
-    const { email, password } = req.body;
-    console.log("hello",email,password)
+    const { userName, password } = req.body;
+    console.log("hello",userName,password)
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password required" });
+    if (!userName || !password) {
+      return res.status(400).json({ error: "userName and password required" });
     }
 
-    const  user= await userService.loginService({email, password});
+    const  user= await userService.loginService({userName, password});
     const payload={id:user.id,firstName:user.firstName,role:user.role}
     setToken(res,payload)
     res.json({
            user});
   } catch (err) {
     console.error("Login error:", err);
-    res.status(401).json({ error: err.message });
+    next(err)
   }
 }
 
+
+
 //controller to handle  user logout 
-export async function logoutController(req,res){
+export async function logoutController(req,res,next){
   try{
     removeToken(res)
     res.status(200).json({message:"loged out successfully"})
 
   }catch(err){
     console.log("ERROR: couldn't logout ",err)
-    res.status(400).json({message:err})
+    next(err)
   }
 
 
 
 }
 
-//controller to handle  user refresh token
 
-export async function  refreshController(req,res){
+
+//controller to handle  user refresh token
+export async function  refreshController(req,res,next){
   const refresh_token = req.cookies.rft 
   try{
     if (!refresh_token){
@@ -99,13 +102,40 @@ export async function  refreshController(req,res){
     setToken(res,payload);
     res.status(200).json({message:"token refereshed"});
 }catch(err){
-
-  console.log(" ERROR: couldn't refersh token ",err);
-  res.status(400).jon({message:"server error  couldn't reffresh token"})
+   next(err)
 }
 
 }
 
 
 
+//  controller to handle forgot password  
+export const forgotPasswordController = async (req, res, next) => {
+    try {
+        await userService.forgotPassword(req.body.email);
+        res.status(200).json({
+            status: 'success',
+            message: 'Token sent to email!',
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+// controller for reseting the password 
+export const resetPasswordController = async (req, res, next) => {
+    try {
+        const { resetToken, password } = req.body;
+
+        await userService.resetPassword(resetToken, password);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Password reset successful! You can now log in.',
+        });
+    } catch (err) {
+        next(err);
+    }
+};
 

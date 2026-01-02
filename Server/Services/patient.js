@@ -10,10 +10,13 @@
 //  and more 
 
 import prisma from "../lib/prisma.js";
+import checkIfAssigned from "../lib/checkIfAssigned.js";
 
 // List patients with pagination + search
 export async function listPatients(page = 1, limit = 20, search = "") {
   const skip = (page - 1) * limit;
+
+  //  allow searching by username
 
   return prisma.patient.findMany({
     skip,
@@ -29,59 +32,67 @@ export async function listPatients(page = 1, limit = 20, search = "") {
         }
       : {},
     include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          status: true,
-        },
-      },
-      emergencyInfo: true,
+     user: true 
     },
   });
 }
 
 // Get patient details
-export async function getPatientById(id) {
-  return prisma.patient.findUnique({
+
+
+export async function getPatientById(id,user) {
+
+try{
+   
+   const patient=await prisma.patient.findUnique({
     where: { id: Number(id) },
     include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          role: true,
-          status: true,
-        },
-      },
-      emergencyInfo: true,
-      diagnoses: true,
-      appointments: true,
-      labResults: true,
-    },
+                user:true,
+                emergencyInfo:true
+  },
   });
+  if (user.role==="DOCTOR"){
+      await checkIfAssigned(user.id,patient.id)
+ }
+ }catch(err){
+   throw err
+ }
+  
+  return patient
 }
 
-// Update patient information (Doctor only)
+
+
+// Update patient information (Admin only)
+
 export async function updatePatient(id, patientData) {
   return prisma.patient.update({
     where: { id: Number(id) },
     data: {
-      dob: patientData.dob,
-      gender: patientData.gender,
+      
+      dob: patientData.dob ? new Date(patientData.dob) : undefined,
+      gender: patientData.gender, 
       address: patientData.address,
       insuranceStatus: patientData.insuranceStatus,
-      emergencyInfo: patientData.emergencyContact
+
+      // Handle Emergency Info nested upsert
+      emergencyInfo: patientData.emergencyInfo 
         ? {
             upsert: {
-              update: { emergencyContact: patientData.emergencyContact },
-              create: { emergencyContact: patientData.emergencyContact },
+              create: {
+                bloodType: patientData.emergencyInfo.bloodType,
+                chronicDiseases: patientData.emergencyInfo.chronicDiseases,
+                emergencyContactName: patientData.emergencyInfo.contactName,
+                emergencyContactPhone: patientData.emergencyInfo.contactPhone,
+                emergencyContactRelation: patientData.emergencyInfo.relation,
+              },
+              update: {
+                bloodType: patientData.emergencyInfo.bloodType,
+                chronicDiseases: patientData.emergencyInfo.chronicDiseases,
+                emergencyContactName: patientData.emergencyInfo.contactName,
+                emergencyContactPhone: patientData.emergencyInfo.contactPhone,
+                emergencyContactRelation: patientData.emergencyInfo.relation,
+              },
             },
           }
         : undefined,
@@ -93,5 +104,8 @@ export async function updatePatient(id, patientData) {
   });
 }
 
- 
- 
+
+// implement how to add    the imergency inforamtion      to the patinrt  and  allergy 
+
+
+

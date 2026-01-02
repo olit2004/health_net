@@ -1,12 +1,59 @@
-// the service level is the  here we are goin to define functions  that are going to actually talk to the database 
-
-// so we will implement the following function and more that as the need arises  the cotroler is goin to  use the services we  have defined here
-
-    
-// getEmergencyInfo(patientId),
-// updateEmergencyInfo(patientId, data)
+import prisma from "../lib/prisma.js";
 
 
-//  and more 
 
 
+export async function upsertEmergencyInfo(userId, data) {
+  // 1. Resolve patient from logged-in user
+  const patient = await prisma.patient.findUnique({
+    where: { userId: Number(userId) },
+    select: { id: true }
+  });
+
+  if (!patient) {
+    throw new Error("Patient profile not found");
+  }
+
+  // 2. Upsert emergency info
+  return prisma.emergencyInfo.upsert({
+    where: { patientId: patient.id },
+    update: data,
+    create: {
+      ...data,
+      patientId: patient.id,
+    },
+  });
+}
+
+/**
+ * Public access via QR token
+ */
+export async function getEmergencyByToken(qrToken) {
+  const patient = await prisma.patient.findUnique({
+    where: { qrToken },
+    include: {
+      emergencyInfo: true,
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          phone: true,
+        },
+      },
+    },
+  });
+
+  if (!patient) {
+    throw new Error("Invalid or expired QR token");
+  }
+
+  if (!patient.emergencyInfo) {
+    throw new Error("No emergency information available");
+  }
+
+  return {
+    name: `${patient.user.firstName} ${patient.user.lastName}`,
+    phone: patient.user.phone,
+    emergencyInfo: patient.emergencyInfo,
+  };
+}

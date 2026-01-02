@@ -96,6 +96,3 @@ export const updateProfileValidator = z.object({
   emergencyContact: z.string().max(100).optional()
 });
 
-export const forgotPasswordValidator = z.object({
-  email: z.string().email().toLowerCase(),
-});

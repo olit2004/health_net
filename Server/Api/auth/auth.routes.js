@@ -10,7 +10,7 @@ import { validateRequest } from "../../middleware/validateRequest.js";
 import {registerValidator,loginValidator,} from "../../lib/validator.js"
 import {onlyAdmin} from "../../middleware/onlyAdmin.js"
 
-import {registerController,loginController,refreshController,logoutController} from "./auth.controller.js";
+import {registerController,loginController,refreshController,logoutController, forgotPasswordController,resetPasswordController} from "./auth.controller.js";
 
 const route = express.Router();
 
@@ -18,7 +18,10 @@ const route = express.Router();
 route.post("/register", onlyAdmin, validateRequest(registerValidator),registerController)
 route.post("/login", loginController);
 route.post("/reffresh",refreshController);
-route.post ("/logout",logoutController)
+route.post ("/logout",logoutController);
+
+route.post('/forgot-password', forgotPasswordController);
+route.patch('/reset-password', resetPasswordController);
 
 
 

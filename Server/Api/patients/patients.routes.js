@@ -10,8 +10,10 @@ import {
 
 import {onlyAdmin} from "../../middleware/onlyAdmin.js"
 const router = express.Router()
-router.get("/patients", onlyAdmin, listPatientsController);
-router.get("/patients/:id",requireAuth, getPatientController);
-router.put("/patients/:id",requireAuth, updatePatientController);
+
+
+router.get("/patients", onlyAdmin, listPatientsController);  //  list every patients  -->small data 
+router.get("/patients/:id",requireAuth, getPatientController);  // detail info  doctors calll this end point inorder to get information on 
+router.put("/patients/:id",onlyAdmin, updatePatientController);
 
 export default router

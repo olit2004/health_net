@@ -40,9 +40,9 @@ export async function getMeController(req, res) {
 
 export async function getUsersController(req, res) {
   try {
-    const { page = 1, role, email, firstName, lastName } = req.query;
+    const { page = 1, role, email, firstName, lastName,userName } = req.query;
 
-    const filters = { role, email, firstName, lastName };
+    const filters = { role, email, firstName, lastName,userName };
 
     const result = await userService.listUsers({
       page: parseInt(page, 10),
@@ -64,7 +64,6 @@ export async function getUsersController(req, res) {
 
 
 // controllers/userController.js
-
 
 export async function getUserController(req, res) {
   try {
@@ -103,40 +102,30 @@ export async function getUserController(req, res) {
 
 
 
-
-
+// in activate user   we implemented under the business logic that says admins can in actiavate the user 
 
 export async function inactivateUserController(req, res) {
   try {
-    const { id } = req.params;
+      const { id } = req.params;
+      const updatedUser = await userService.inactivateUserById(id,req.adminlevel);
 
-
-    if (req.user.role !== "ADMIN" ) {
-      return res.status(403).json({ success: false, message: "Forbidden: only SUPER_ADMIN can delete users" });
+      return res.json({
+        success: true,
+        message: "User inactivated successfully",
+        user: updatedUser,
+      });
+    } 
+    catch (err) {
+      console.error("Error inactivating user:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error while inactivating user",
+      });
     }
-    const admin = await userService.getAdmin(req.user.id);
-    console.log(admin)
-     if (!admin || admin.adminLevel!="SUPER_ADMIN"){
-         return res.status(403).json({ success: false, message: "Forbidden: only SUPER_ADMIN can delete users" });
-     }
-
-    const updatedUser = await userService.inactivateUserById(id);
-
-    return res.json({
-      success: true,
-      message: "User inactivated successfully",
-      user: updatedUser,
-    });
-  } catch (err) {
-    console.error("Error inactivating user:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while inactivating user",
-    });
-  }
 }
 
-
+// only the admin can edit profile 
+// and admins profile is unchangeable and  doctor will be changed 
 export async function updateUserProfileController(req, res) {
   try {
     const { id } = req.params;
@@ -155,3 +144,20 @@ export async function updateUserProfileController(req, res) {
     return res.status(500).json({ success: false, message: "Internal server error while updating profile" });
   }
 }
+
+export const updatePassword = async (req, res, next) => {
+    try {
+        const userId = req.user.id; 
+        const data = req.body;
+
+        const user = await userService.updateMe(userId, data);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Profile updated successfully',
+            data: { user },
+        });
+    } catch (err) {
+        next(err);
+    }
+};

@@ -64,10 +64,21 @@ enum InsuranceStatus {
   UNINSURED
 }
 
+enum AssignmentStatus {
+  ACTIVE
+  CANCELED
+}
+
+enum AllergySeverity {
+  MILD
+  SEVERE
+}
+
 // CORE USER
 
 model User {
   id           Int      @id @default(autoincrement())
+  userName     String   @unique @map("user_name")
   firstName    String
   lastName     String
   email        String   @unique
@@ -77,6 +88,10 @@ model User {
   status       String   @default("active")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+
+  //Password resets
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
 
   patient    Patient?
   doctor     Doctor?
@@ -99,29 +114,27 @@ model Patient {
 
   insuranceStatus InsuranceStatus @default(UNINSURED) @map("insurance_status")
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
-
+  createdAt     DateTime       @default(now()) @map("created_at")
+  user          User           @relation(fields: [userId], references: [id])
   diagnoses     Diagnosis[]
   labResults    LabResult[]
   appointments  Appointment[]
   emergencyInfo EmergencyInfo?
   assignments   Assignment[]
+  allergies     Allergy[]
 
   @@map("patients")
 }
 
 // DOCTOR
-
 model Doctor {
-  id             Int      @id @default(autoincrement())
-  userId         Int      @unique @map("user_id")
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique @map("user_id")
   specialization String?
-  licenseNo      String?  @map("license_no")
-  phone          String?
-  email          String?
-  createdAt      DateTime @default(now()) @map("created_at")
+  licenseNo      String? @map("license_no")
+  doctorId       String? @map("doctor_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])
 
@@ -135,12 +148,12 @@ model Doctor {
 }
 
 // FACILITY
-
 model Facility {
   id              Int          @id @default(autoincrement())
   name            String
   facilityType    FacilityType @map("facility_type")
   region          String?
+  email           String?
   locationAddress String?      @map("location_address")
   contactPhone    String?      @map("contact_phone")
   licenseNumber   String?      @map("license_number")
@@ -151,6 +164,7 @@ model Facility {
   labResults       LabResult[]
   appointments     Appointment[]
   admins           Admin[]
+  assigments       Assignment[]
 
   @@map("facilities")
 }
@@ -175,13 +189,20 @@ model DoctorFacility {
 // MEDICAL RECORDS
 
 model Diagnosis {
-  id            Int      @id @default(autoincrement())
-  patientId     Int      @map("patient_id")
-  doctorId      Int      @map("doctor_id")
-  facilityId    Int      @map("facility_id")
-  diagnosisText String   @map("diagnosis_text")
-  treatmentPlan String?  @map("treatment_plan")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id          Int     @id @default(autoincrement())
+  patientId   Int     @map("patient_id")
+  doctorId    Int     @map("doctor_id")
+  facilityId  Int     @map("facility_id")
+  diagnosisId String? @map("diagnoses_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  symptoms           String  @db.Text
+  disease_name       String  @map("disease_name") @db.VarChar(200) // For search/filtering
+  medications        String  @db.Text
+  suggestions        String? @db.Text
+  conclusion         String? @db.Text
+  emergencyVisibilty Boolean @default(false)
 
   patient  Patient  @relation(fields: [patientId], references: [id])
   doctor   Doctor   @relation(fields: [doctorId], references: [id])
@@ -199,6 +220,7 @@ model LabResult {
   createdById Int      @map("created_by") // Can be User with Role LAB_TECH or DOCTOR
   filePath    String   @map("file_path")
   resultType  String?
+  labResultId String?  @map("lab_result_id")
   createdAt   DateTime @default(now()) @map("created_at")
 
   patient   Patient  @relation(fields: [patientId], references: [id])
@@ -218,7 +240,8 @@ model Appointment {
   doctorId   Int               @map("doctor_id")
   patientId  Int               @map("patient_id")
   facilityId Int               @map("facility_id")
-  dateTime   DateTime          @map("date_time")
+  startTime  DateTime          @default(now()) @map("start_time")
+  endTime    DateTime          @map("end_time")
   reason     String?
   status     AppointmentStatus @default(SCHEDULED)
 
@@ -232,14 +255,20 @@ model Appointment {
 // EMERGENCY INFO (QR SAFE) 
 
 model EmergencyInfo {
-  id               Int        @id @default(autoincrement())
-  patientId        Int        @unique @map("patient_id")
-  bloodType        BloodType? @map("blood_type")
-  allergies        String?
-  chronicDiseases  String?    @map("chronic_diseases")
-  emergencyContact String?    @map("emergency_contact")
-  lastUpdatedAt    DateTime   @updatedAt @map("last_updated_at")
-  createdAt        DateTime   @default(now()) @map("created_at")
+  id              Int        @id @default(autoincrement())
+  patientId       Int        @unique @map("patient_id")
+  bloodType       BloodType? @map("blood_type")
+  chronicDiseases String?    @map("chronic_diseases") @db.Text
+
+  // Structured Contact Info
+  emergencyContactName     String? @map("emergency_contact_name")
+  emergencyContactPhone    String? @map("emergency_contact_phone")
+  emergencyContactRelation String? @map("emergency_contact_relation")
+
+  medicalDirectives String? @map("medical_directives") @db.Text // e.g., DNAR or specific wishes
+
+  lastUpdatedAt DateTime @updatedAt @map("last_updated_at")
+  createdAt     DateTime @default(now()) @map("created_at")
 
   patient Patient @relation(fields: [patientId], references: [id])
 
@@ -247,17 +276,21 @@ model EmergencyInfo {
 }
 
 // ASSIGNMENTS (Doctor ↔ Patient)
-
 model Assignment {
   id           Int      @id @default(autoincrement())
   doctorId     Int      @map("doctor_id")
   patientId    Int      @map("patient_id")
   assignedDate DateTime @default(now()) @map("assigned_date")
+  facilityId   Int      @map("facility_id")
 
-  doctor  Doctor  @relation(fields: [doctorId], references: [id])
-  patient Patient @relation(fields: [patientId], references: [id])
+  assignedById Int              @map("assigned_by")
+  assignedBy   Admin            @relation(fields: [assignedById], references: [id])
+  status       AssignmentStatus @default(ACTIVE)
 
-  @@unique([doctorId, patientId])
+  doctor   Doctor   @relation(fields: [doctorId], references: [id])
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
   @@map("assignments")
 }
 
@@ -270,8 +303,20 @@ model Admin {
   adminLevel AdminLevel? @map("admin_level")
   department String?
 
-  user     User     @relation(fields: [userId], references: [id])
-  facility Facility @relation(fields: [facilityId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  facility    Facility     @relation(fields: [facilityId], references: [id])
+  assignments Assignment[]
 
   @@map("admins")
+}
+
+model Allergy {
+  id        Int             @id @default(autoincrement())
+  allergen  String
+  severity  AllergySeverity
+  notes     String?
+  patientId Int             @map("patient_id")
+  patient   Patient         @relation(fields: [patientId], references: [id])
+
+  @@map("allergies")
 }

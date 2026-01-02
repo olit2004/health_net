@@ -122,6 +122,7 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
+  userName: 'userName',
   firstName: 'firstName',
   lastName: 'lastName',
   email: 'email',
@@ -130,7 +131,9 @@ exports.Prisma.UserScalarFieldEnum = {
   role: 'role',
   status: 'status',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  passwordResetToken: 'passwordResetToken',
+  passwordResetExpires: 'passwordResetExpires'
 };
 
 exports.Prisma.PatientScalarFieldEnum = {
@@ -150,8 +153,7 @@ exports.Prisma.DoctorScalarFieldEnum = {
   userId: 'userId',
   specialization: 'specialization',
   licenseNo: 'licenseNo',
-  phone: 'phone',
-  email: 'email',
+  doctorId: 'doctorId',
   createdAt: 'createdAt'
 };
 
@@ -160,6 +162,7 @@ exports.Prisma.FacilityScalarFieldEnum = {
   name: 'name',
   facilityType: 'facilityType',
   region: 'region',
+  email: 'email',
   locationAddress: 'locationAddress',
   contactPhone: 'contactPhone',
   licenseNumber: 'licenseNumber',
@@ -180,9 +183,14 @@ exports.Prisma.DiagnosisScalarFieldEnum = {
   patientId: 'patientId',
   doctorId: 'doctorId',
   facilityId: 'facilityId',
-  diagnosisText: 'diagnosisText',
-  treatmentPlan: 'treatmentPlan',
-  createdAt: 'createdAt'
+  diagnosisId: 'diagnosisId',
+  createdAt: 'createdAt',
+  symptoms: 'symptoms',
+  disease_name: 'disease_name',
+  medications: 'medications',
+  suggestions: 'suggestions',
+  conclusion: 'conclusion',
+  emergencyVisibilty: 'emergencyVisibilty'
 };
 
 exports.Prisma.LabResultScalarFieldEnum = {
@@ -193,6 +201,7 @@ exports.Prisma.LabResultScalarFieldEnum = {
   createdById: 'createdById',
   filePath: 'filePath',
   resultType: 'resultType',
+  labResultId: 'labResultId',
   createdAt: 'createdAt'
 };
 
@@ -201,7 +210,8 @@ exports.Prisma.AppointmentScalarFieldEnum = {
   doctorId: 'doctorId',
   patientId: 'patientId',
   facilityId: 'facilityId',
-  dateTime: 'dateTime',
+  startTime: 'startTime',
+  endTime: 'endTime',
   reason: 'reason',
   status: 'status'
 };
@@ -210,9 +220,11 @@ exports.Prisma.EmergencyInfoScalarFieldEnum = {
   id: 'id',
   patientId: 'patientId',
   bloodType: 'bloodType',
-  allergies: 'allergies',
   chronicDiseases: 'chronicDiseases',
-  emergencyContact: 'emergencyContact',
+  emergencyContactName: 'emergencyContactName',
+  emergencyContactPhone: 'emergencyContactPhone',
+  emergencyContactRelation: 'emergencyContactRelation',
+  medicalDirectives: 'medicalDirectives',
   lastUpdatedAt: 'lastUpdatedAt',
   createdAt: 'createdAt'
 };
@@ -221,7 +233,10 @@ exports.Prisma.AssignmentScalarFieldEnum = {
   id: 'id',
   doctorId: 'doctorId',
   patientId: 'patientId',
-  assignedDate: 'assignedDate'
+  assignedDate: 'assignedDate',
+  facilityId: 'facilityId',
+  assignedById: 'assignedById',
+  status: 'status'
 };
 
 exports.Prisma.AdminScalarFieldEnum = {
@@ -230,6 +245,14 @@ exports.Prisma.AdminScalarFieldEnum = {
   facilityId: 'facilityId',
   adminLevel: 'adminLevel',
   department: 'department'
+};
+
+exports.Prisma.AllergyScalarFieldEnum = {
+  id: 'id',
+  allergen: 'allergen',
+  severity: 'severity',
+  notes: 'notes',
+  patientId: 'patientId'
 };
 
 exports.Prisma.SortOrder = {
@@ -301,9 +324,19 @@ exports.BloodType = exports.$Enums.BloodType = {
   O_NEG: 'O_NEG'
 };
 
+exports.AssignmentStatus = exports.$Enums.AssignmentStatus = {
+  ACTIVE: 'ACTIVE',
+  CANCELED: 'CANCELED'
+};
+
 exports.AdminLevel = exports.$Enums.AdminLevel = {
   SUPER_ADMIN: 'SUPER_ADMIN',
   AdMIN: 'AdMIN'
+};
+
+exports.AllergySeverity = exports.$Enums.AllergySeverity = {
+  MILD: 'MILD',
+  SEVERE: 'SEVERE'
 };
 
 exports.Prisma.ModelName = {
@@ -317,7 +350,8 @@ exports.Prisma.ModelName = {
   Appointment: 'Appointment',
   EmergencyInfo: 'EmergencyInfo',
   Assignment: 'Assignment',
-  Admin: 'Admin'
+  Admin: 'Admin',
+  Allergy: 'Allergy'
 };
 
 /**
