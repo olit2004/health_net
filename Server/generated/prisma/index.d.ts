@@ -15569,7 +15569,7 @@ export namespace Prisma {
 
   export type AllergyMinAggregateOutputType = {
     id: number | null
-    allergen: string | null
+    allergey: string | null
     severity: $Enums.AllergySeverity | null
     notes: string | null
     patientId: number | null
@@ -15577,7 +15577,7 @@ export namespace Prisma {
 
   export type AllergyMaxAggregateOutputType = {
     id: number | null
-    allergen: string | null
+    allergey: string | null
     severity: $Enums.AllergySeverity | null
     notes: string | null
     patientId: number | null
@@ -15585,7 +15585,7 @@ export namespace Prisma {
 
   export type AllergyCountAggregateOutputType = {
     id: number
-    allergen: number
+    allergey: number
     severity: number
     notes: number
     patientId: number
@@ -15605,7 +15605,7 @@ export namespace Prisma {
 
   export type AllergyMinAggregateInputType = {
     id?: true
-    allergen?: true
+    allergey?: true
     severity?: true
     notes?: true
     patientId?: true
@@ -15613,7 +15613,7 @@ export namespace Prisma {
 
   export type AllergyMaxAggregateInputType = {
     id?: true
-    allergen?: true
+    allergey?: true
     severity?: true
     notes?: true
     patientId?: true
@@ -15621,7 +15621,7 @@ export namespace Prisma {
 
   export type AllergyCountAggregateInputType = {
     id?: true
-    allergen?: true
+    allergey?: true
     severity?: true
     notes?: true
     patientId?: true
@@ -15716,7 +15716,7 @@ export namespace Prisma {
 
   export type AllergyGroupByOutputType = {
     id: number
-    allergen: string
+    allergey: string
     severity: $Enums.AllergySeverity
     notes: string | null
     patientId: number
@@ -15743,7 +15743,7 @@ export namespace Prisma {
 
   export type AllergySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    allergen?: boolean
+    allergey?: boolean
     severity?: boolean
     notes?: boolean
     patientId?: boolean
@@ -15752,7 +15752,7 @@ export namespace Prisma {
 
   export type AllergySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    allergen?: boolean
+    allergey?: boolean
     severity?: boolean
     notes?: boolean
     patientId?: boolean
@@ -15761,7 +15761,7 @@ export namespace Prisma {
 
   export type AllergySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    allergen?: boolean
+    allergey?: boolean
     severity?: boolean
     notes?: boolean
     patientId?: boolean
@@ -15770,13 +15770,13 @@ export namespace Prisma {
 
   export type AllergySelectScalar = {
     id?: boolean
-    allergen?: boolean
+    allergey?: boolean
     severity?: boolean
     notes?: boolean
     patientId?: boolean
   }
 
-  export type AllergyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "allergen" | "severity" | "notes" | "patientId", ExtArgs["result"]["allergy"]>
+  export type AllergyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "allergey" | "severity" | "notes" | "patientId", ExtArgs["result"]["allergy"]>
   export type AllergyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | PatientDefaultArgs<ExtArgs>
   }
@@ -15794,7 +15794,7 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
-      allergen: string
+      allergey: string
       severity: $Enums.AllergySeverity
       notes: string | null
       patientId: number
@@ -16223,7 +16223,7 @@ export namespace Prisma {
    */
   interface AllergyFieldRefs {
     readonly id: FieldRef<"Allergy", 'Int'>
-    readonly allergen: FieldRef<"Allergy", 'String'>
+    readonly allergey: FieldRef<"Allergy", 'String'>
     readonly severity: FieldRef<"Allergy", 'AllergySeverity'>
     readonly notes: FieldRef<"Allergy", 'String'>
     readonly patientId: FieldRef<"Allergy", 'Int'>
@@ -16817,7 +16817,7 @@ export namespace Prisma {
 
   export const AllergyScalarFieldEnum: {
     id: 'id',
-    allergen: 'allergen',
+    allergey: 'allergey',
     severity: 'severity',
     notes: 'notes',
     patientId: 'patientId'
@@ -18002,7 +18002,7 @@ export namespace Prisma {
     OR?: AllergyWhereInput[]
     NOT?: AllergyWhereInput | AllergyWhereInput[]
     id?: IntFilter<"Allergy"> | number
-    allergen?: StringFilter<"Allergy"> | string
+    allergey?: StringFilter<"Allergy"> | string
     severity?: EnumAllergySeverityFilter<"Allergy"> | $Enums.AllergySeverity
     notes?: StringNullableFilter<"Allergy"> | string | null
     patientId?: IntFilter<"Allergy"> | number
@@ -18011,7 +18011,7 @@ export namespace Prisma {
 
   export type AllergyOrderByWithRelationInput = {
     id?: SortOrder
-    allergen?: SortOrder
+    allergey?: SortOrder
     severity?: SortOrder
     notes?: SortOrderInput | SortOrder
     patientId?: SortOrder
@@ -18023,7 +18023,7 @@ export namespace Prisma {
     AND?: AllergyWhereInput | AllergyWhereInput[]
     OR?: AllergyWhereInput[]
     NOT?: AllergyWhereInput | AllergyWhereInput[]
-    allergen?: StringFilter<"Allergy"> | string
+    allergey?: StringFilter<"Allergy"> | string
     severity?: EnumAllergySeverityFilter<"Allergy"> | $Enums.AllergySeverity
     notes?: StringNullableFilter<"Allergy"> | string | null
     patientId?: IntFilter<"Allergy"> | number
@@ -18032,7 +18032,7 @@ export namespace Prisma {
 
   export type AllergyOrderByWithAggregationInput = {
     id?: SortOrder
-    allergen?: SortOrder
+    allergey?: SortOrder
     severity?: SortOrder
     notes?: SortOrderInput | SortOrder
     patientId?: SortOrder
@@ -18048,7 +18048,7 @@ export namespace Prisma {
     OR?: AllergyScalarWhereWithAggregatesInput[]
     NOT?: AllergyScalarWhereWithAggregatesInput | AllergyScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Allergy"> | number
-    allergen?: StringWithAggregatesFilter<"Allergy"> | string
+    allergey?: StringWithAggregatesFilter<"Allergy"> | string
     severity?: EnumAllergySeverityWithAggregatesFilter<"Allergy"> | $Enums.AllergySeverity
     notes?: StringNullableWithAggregatesFilter<"Allergy"> | string | null
     patientId?: IntWithAggregatesFilter<"Allergy"> | number
@@ -18978,7 +18978,7 @@ export namespace Prisma {
   }
 
   export type AllergyCreateInput = {
-    allergen: string
+    allergey: string
     severity: $Enums.AllergySeverity
     notes?: string | null
     patient: PatientCreateNestedOneWithoutAllergiesInput
@@ -18986,14 +18986,14 @@ export namespace Prisma {
 
   export type AllergyUncheckedCreateInput = {
     id?: number
-    allergen: string
+    allergey: string
     severity: $Enums.AllergySeverity
     notes?: string | null
     patientId: number
   }
 
   export type AllergyUpdateInput = {
-    allergen?: StringFieldUpdateOperationsInput | string
+    allergey?: StringFieldUpdateOperationsInput | string
     severity?: EnumAllergySeverityFieldUpdateOperationsInput | $Enums.AllergySeverity
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     patient?: PatientUpdateOneRequiredWithoutAllergiesNestedInput
@@ -19001,7 +19001,7 @@ export namespace Prisma {
 
   export type AllergyUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    allergen?: StringFieldUpdateOperationsInput | string
+    allergey?: StringFieldUpdateOperationsInput | string
     severity?: EnumAllergySeverityFieldUpdateOperationsInput | $Enums.AllergySeverity
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     patientId?: IntFieldUpdateOperationsInput | number
@@ -19009,21 +19009,21 @@ export namespace Prisma {
 
   export type AllergyCreateManyInput = {
     id?: number
-    allergen: string
+    allergey: string
     severity: $Enums.AllergySeverity
     notes?: string | null
     patientId: number
   }
 
   export type AllergyUpdateManyMutationInput = {
-    allergen?: StringFieldUpdateOperationsInput | string
+    allergey?: StringFieldUpdateOperationsInput | string
     severity?: EnumAllergySeverityFieldUpdateOperationsInput | $Enums.AllergySeverity
     notes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type AllergyUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
-    allergen?: StringFieldUpdateOperationsInput | string
+    allergey?: StringFieldUpdateOperationsInput | string
     severity?: EnumAllergySeverityFieldUpdateOperationsInput | $Enums.AllergySeverity
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     patientId?: IntFieldUpdateOperationsInput | number
@@ -20040,7 +20040,7 @@ export namespace Prisma {
 
   export type AllergyCountOrderByAggregateInput = {
     id?: SortOrder
-    allergen?: SortOrder
+    allergey?: SortOrder
     severity?: SortOrder
     notes?: SortOrder
     patientId?: SortOrder
@@ -20053,7 +20053,7 @@ export namespace Prisma {
 
   export type AllergyMaxOrderByAggregateInput = {
     id?: SortOrder
-    allergen?: SortOrder
+    allergey?: SortOrder
     severity?: SortOrder
     notes?: SortOrder
     patientId?: SortOrder
@@ -20061,7 +20061,7 @@ export namespace Prisma {
 
   export type AllergyMinOrderByAggregateInput = {
     id?: SortOrder
-    allergen?: SortOrder
+    allergey?: SortOrder
     severity?: SortOrder
     notes?: SortOrder
     patientId?: SortOrder
@@ -22176,14 +22176,14 @@ export namespace Prisma {
   }
 
   export type AllergyCreateWithoutPatientInput = {
-    allergen: string
+    allergey: string
     severity: $Enums.AllergySeverity
     notes?: string | null
   }
 
   export type AllergyUncheckedCreateWithoutPatientInput = {
     id?: number
-    allergen: string
+    allergey: string
     severity: $Enums.AllergySeverity
     notes?: string | null
   }
@@ -22410,7 +22410,7 @@ export namespace Prisma {
     OR?: AllergyScalarWhereInput[]
     NOT?: AllergyScalarWhereInput | AllergyScalarWhereInput[]
     id?: IntFilter<"Allergy"> | number
-    allergen?: StringFilter<"Allergy"> | string
+    allergey?: StringFilter<"Allergy"> | string
     severity?: EnumAllergySeverityFilter<"Allergy"> | $Enums.AllergySeverity
     notes?: StringNullableFilter<"Allergy"> | string | null
     patientId?: IntFilter<"Allergy"> | number
@@ -24700,7 +24700,7 @@ export namespace Prisma {
 
   export type AllergyCreateManyPatientInput = {
     id?: number
-    allergen: string
+    allergey: string
     severity: $Enums.AllergySeverity
     notes?: string | null
   }
@@ -24834,21 +24834,21 @@ export namespace Prisma {
   }
 
   export type AllergyUpdateWithoutPatientInput = {
-    allergen?: StringFieldUpdateOperationsInput | string
+    allergey?: StringFieldUpdateOperationsInput | string
     severity?: EnumAllergySeverityFieldUpdateOperationsInput | $Enums.AllergySeverity
     notes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type AllergyUncheckedUpdateWithoutPatientInput = {
     id?: IntFieldUpdateOperationsInput | number
-    allergen?: StringFieldUpdateOperationsInput | string
+    allergey?: StringFieldUpdateOperationsInput | string
     severity?: EnumAllergySeverityFieldUpdateOperationsInput | $Enums.AllergySeverity
     notes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type AllergyUncheckedUpdateManyWithoutPatientInput = {
     id?: IntFieldUpdateOperationsInput | number
-    allergen?: StringFieldUpdateOperationsInput | string
+    allergey?: StringFieldUpdateOperationsInput | string
     severity?: EnumAllergySeverityFieldUpdateOperationsInput | $Enums.AllergySeverity
     notes?: NullableStringFieldUpdateOperationsInput | string | null
   }

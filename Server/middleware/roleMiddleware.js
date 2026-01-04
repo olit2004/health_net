@@ -1,4 +1,4 @@
-import AppError from '../lib/AppError.js';
+import AppError from '../lib/appError.js';
 export function roleMiddleware(allowedRoles) {
     return (req, res, next) => {
         // Check if req.user exists (set by requireAuth)

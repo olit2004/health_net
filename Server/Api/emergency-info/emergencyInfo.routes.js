@@ -1,14 +1,15 @@
 import express from "express";
 import {
-  updateMyEmergencyInfo,
+ updateMyEmergencyContactInfo,
   scanEmergencyQR,
 } from "./emergencyInfo.controller.js";
-import { requireAuth } from "../../middleware/requireAuth.js";
+ import { requireAuth } from "../../middleware/requireAuth.js";
 
 const router = express.Router();
 
 
 router.get("/scan/:token", scanEmergencyQR);
-router.put("/me", requireAuth, updateMyEmergencyInfo);
+router.put("/me", requireAuth, updateMyEmergencyContactInfo);
+
 
 export default router;

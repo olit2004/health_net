@@ -5,28 +5,36 @@ import * as diagnosisService from "../../../Services/diagnosis.js";
 
 export async function createDiagnosisController(req, res) {
   try {
-    const { patientId, diagnosisText, treatmentPlan,facilityId } = req.body;
 
-    
-
-    if (req.user.role !== "DOCTOR") {
-      return res.status(403).json({ error: "Only doctors can create diagnoses" });
-    }
+    const {
+      patientId,
+      symptoms,
+      disease_name,
+      medications,
+      suggestions,
+      conclusion,
+      emergencyVisibilty
+    } = req.body;
 
     const diagnosis = await diagnosisService.createDiagnosis({
       patientId,
       userId: req.user.id,
-      diagnosisText,
-      facilityId,
-      treatmentPlan,
+      
+      symptoms,
+      disease_name,
+      medications,
+      suggestions,
+      conclusion,
+      emergencyVisibilty
     });
 
-    res.status(201).json(diagnosis);
+    res.status(201).json({ success: true, data: diagnosis });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to create diagnosis" });
+    res.status(400).json({ success: false, message: error.message });
   }
 }
+
 
 
 // 2. Get all diagnoses for a specific patient
@@ -34,12 +42,10 @@ export async function getPatientDiagnosesController(req, res) {
   try {
     const { patientId } = req.params;
     
-
-    console.log("*****")
     const diagnoses = await diagnosisService.getPatientDiagnoses({
       patientId,
-      user: req.user // Pass the full user object for role/ID checks
-    });
+      user: req.user 
+    }); 
 
     res.status(200).json({ success: true, data: diagnoses });
   } catch (error) {
@@ -73,13 +79,26 @@ export async function getDiagnosisByIdController(req, res) {
 export async function updateDiagnosisController(req, res) {
   try {
     const { id } = req.params;
-    const { diagnosisText, treatmentPlan } = req.body;
+    const {
+      symptoms,
+      disease_name,
+      medications,
+      suggestions,
+      conclusion,
+
+    } = req.body;
 
     const updatedDiagnosis = await diagnosisService.updateDiagnosis({
       id,
       user: req.user,
-      diagnosisText,
-      treatmentPlan
+      data: {
+        symptoms,
+        disease_name,
+        medications,
+        suggestions,
+        conclusion,
+       
+      }
     });
 
     res.status(200).json({ success: true, data: updatedDiagnosis });
@@ -87,6 +106,7 @@ export async function updateDiagnosisController(req, res) {
     res.status(403).json({ success: false, message: error.message });
   }
 }
+
 
 
 
@@ -103,5 +123,29 @@ export async function deleteDiagnosisController(req, res) {
     res.status(200).json({ success: true, message: "Diagnosis deleted successfully" });
   } catch (error) {
     res.status(403).json({ success: false, message: error.message });
+  }
+}
+
+
+
+export async function toggleEmergencyVisibilityController(req, res) {
+  try {
+    const { id } = req.params;
+
+    const updatedDiagnosis =
+      await diagnosisService.toggleEmergencyVisibility({
+        id,
+        user: req.user
+      });
+
+    res.status(200).json({
+      success: true,
+      data: updatedDiagnosis
+    });
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error.message
+    });
   }
 }

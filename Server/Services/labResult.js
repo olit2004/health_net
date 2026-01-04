@@ -1,13 +1,8 @@
 import prisma from "../lib/prisma.js";
 
-async function validateAssignment(doctorId, patientId) {
-  const assignment = await prisma.assignment.findFirst({
-    where: { patientId: Number(patientId), doctorId: doctorId, status: "ACTIVE" },
-  });
-  if (!assignment) throw new Error("Unauthorized: Doctor not assigned to this patient");
-  return assignment;
-}
+import validateAssignment  from "../lib/checkIfAssigned.js"
 // 1. Create Lab Result  
+
 export async function createLabResult({ patientId, doctorId, facilityId, createdById, filePath, resultType }) {
 return prisma.labResult.create({
     data: {
@@ -63,9 +58,6 @@ export async function getPatientLabResults({ patientId, user }) {
     orderBy: { createdAt: "desc" },
   });
 }
-
-
-
 
 export async function getLabResultById({ id, user }) {
   const labResultId = Number(id);

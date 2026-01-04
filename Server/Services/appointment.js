@@ -50,14 +50,14 @@ export async function getMyAppointments(user) {
       return await prisma.appointment.findMany({
         where: { doctor: { userId: id } },
         include: { patient: { include: { user: true } }, facility: true },
-        orderBy: { dateTime: 'asc' }
+        orderBy: { startTime: 'asc' }
       });
 
     case 'PATIENT':
       return await prisma.appointment.findMany({
         where: { patient: { userId: id } },
         include: { doctor: { include: { user: true } }, facility: true },
-        orderBy: { dateTime: 'asc' }
+        orderBy: {  startTime: 'asc' }
       });
 
     default:

@@ -335,7 +335,7 @@ model Admin {
 
 model Allergy {
   id        Int             @id @default(autoincrement())
-  allergen  String        
+  allergey String        
   severity  AllergySeverity
   notes     String?
   patientId Int             @map("patient_id")

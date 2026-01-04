@@ -1,13 +1,17 @@
 // services/assignmentService.js
 import prisma from "../lib/prisma.js";
 
+
+
+
 // Create assignment
-export async function createAssignment(doctorId, patientId, adminId) {
+export async function createAssignment(doctorId, patientId, adminId,facilityId) {
   return prisma.assignment.create({
     data: {
       doctorId: Number(doctorId),
       patientId: Number(patientId),
       assignedById: Number(adminId),
+      facilityId:Number(facilityId)
     },
     include: {
       doctor: { include: { user: true } },

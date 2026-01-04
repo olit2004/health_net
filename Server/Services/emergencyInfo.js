@@ -2,37 +2,48 @@ import prisma from "../lib/prisma.js";
 
 
 
+export async function updatePatientControlledInfo(userId, data) {
 
-export async function upsertEmergencyInfo(userId, data) {
-  // 1. Resolve patient from logged-in user
+  const {
+    emergencyContactName,
+    emergencyContactPhone,
+    emergencyContactRelation,
+    medicalDirectives,
+  } = data;
+
+
   const patient = await prisma.patient.findUnique({
     where: { userId: Number(userId) },
     select: { id: true }
   });
 
-  if (!patient) {
-    throw new Error("Patient profile not found");
-  }
+  if (!patient) throw new Error("Patient profile not found");
 
-  // 2. Upsert emergency info
+
   return prisma.emergencyInfo.upsert({
     where: { patientId: patient.id },
-    update: data,
+    update: {
+      emergencyContactName,
+      emergencyContactPhone,
+      emergencyContactRelation,
+      medicalDirectives,
+    },
     create: {
-      ...data,
       patientId: patient.id,
+      emergencyContactName,
+      emergencyContactPhone,
+      emergencyContactRelation,
+      medicalDirectives,
     },
   });
 }
 
-/**
- * Public access via QR token
- */
+
+
 export async function getEmergencyByToken(qrToken) {
   const patient = await prisma.patient.findUnique({
     where: { qrToken },
     include: {
-      emergencyInfo: true,
       user: {
         select: {
           firstName: true,
@@ -40,6 +51,24 @@ export async function getEmergencyByToken(qrToken) {
           phone: true,
         },
       },
+      emergencyInfo: true,
+      // Fetch only the critical diagnoses the patient has opted to share
+      diagnoses: {
+        where: { emergencyVisibilty: true },
+        select: {
+          disease_name: true,
+          medications: true,
+          conclusion: true,
+          createdAt: true
+        }
+      },
+      // Including allergies as they are vital for First Responders
+      allergies: {
+        select: {
+          allergey: true,
+          severity: true
+        }
+      }
     },
   });
 
@@ -47,13 +76,37 @@ export async function getEmergencyByToken(qrToken) {
     throw new Error("Invalid or expired QR token");
   }
 
-  if (!patient.emergencyInfo) {
-    throw new Error("No emergency information available");
-  }
-
+  // Formatting for First Responder View
   return {
-    name: `${patient.user.firstName} ${patient.user.lastName}`,
-    phone: patient.user.phone,
-    emergencyInfo: patient.emergencyInfo,
+    criticalAlerts: {
+      bloodType: patient.emergencyInfo?.bloodType || "Unknown",
+      allergies: patient.allergies.map(a => `${a.allergey} (${a.severity})`),
+      // Map diagnoses into a clean string array or object
+      activeDiagnoses: patient.diagnoses.map(d => ({
+        condition: d.disease_name,
+        medications: d.medications,
+        notes: d.conclusion
+      }))
+    },
+    patientIdentification: {
+      name: `${patient.user.firstName} ${patient.user.lastName}`,
+      age: patient.dob ? calculateAge(patient.dob) : "Unknown",
+      primaryPhone: patient.user.phone,
+    },
+    emergencyContact: {
+      name: patient.emergencyInfo?.emergencyContactName,
+      phone: patient.emergencyInfo?.emergencyContactPhone,
+      relation: patient.emergencyInfo?.emergencyContactRelation,
+    },
+    legalDirectives: {
+      medicalDirectives: patient.emergencyInfo?.medicalDirectives || "None provided"
+    }
   };
+}
+
+// Helper to make the data more useful for responders
+function calculateAge(dob) {
+  const diff = Date.now() - new Date(dob).getTime();
+  const ageDate = new Date(diff);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
 }

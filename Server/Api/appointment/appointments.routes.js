@@ -11,7 +11,7 @@ import  {roleMiddleware}  from "../../middleware/roleMiddleware.js"
 const router = express.Router();
 
 router.use(requireAuth);
-
+ 
 router.post("/appointment", roleMiddleware("DOCTOR"),createAppointmentController);     
 router.get("/myAppointment", requireAuth,getMyAppointmentsController);      
 router.patch("/appointment/status/:id",requireAuth, updateStatusController); 

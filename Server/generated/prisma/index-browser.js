@@ -249,7 +249,7 @@ exports.Prisma.AdminScalarFieldEnum = {
 
 exports.Prisma.AllergyScalarFieldEnum = {
   id: 'id',
-  allergen: 'allergen',
+  allergey: 'allergey',
   severity: 'severity',
   notes: 'notes',
   patientId: 'patientId'

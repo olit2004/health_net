@@ -1,44 +1,58 @@
 import prisma from "../lib/prisma.js";
+import validateAssignment   from "../lib/checkIfAssigned.js"
 
 
-async function validateAssignment(doctorId, patientId) {
-  const assignment = await prisma.assignment.findFirst({
-    where: {
-      patientId: Number(patientId),
-      doctorId: doctorId,
-      status: "ACTIVE",
-    },
-  });
-
-  if (!assignment) {
-    throw new Error("Unauthorized: No active assignment between doctor and patient");
-  }
-  return assignment;
-}
 
 // 1. Create  we should   infer the facility id
 
-export async function createDiagnosis({ patientId, userId, facilityId, diagnosisText, treatmentPlan }) {
-  const doctor = await prisma.doctor.findUnique({ where: { userId: Number(userId) } });
-  if (!doctor) throw new Error("Unauthorized: User is not a doctor");
+export async function createDiagnosis({
+  patientId,
+  userId,
+  symptoms,
+  disease_name,
+  medications,
+  suggestions,
+  conclusion,
+ 
+}) 
+{
+  const doctor = await prisma.doctor.findUnique({
+    where: { userId: Number(userId) }
+  });
 
-  
-  const assignment = await validateAssignment(doctor.id, patientId);
+  if (!doctor) {
+    throw new Error("Unauthorized: User is not a doctor");
+  }
+
+  const assignment = await validateAssignment(doctor.id, Number(patientId));
 
   return prisma.diagnosis.create({
     data: {
-      diagnosisText,
-      treatmentPlan,
-      patient: { connect: { id: Number(patientId) } },
-      doctor: { connect: { id: doctor.id } },
-      facility: { connect: { id: Number(facilityId) || assignment.facilityId } },
-    },
+      symptoms,
+      disease_name,
+      medications,
+      suggestions,
+      conclusion,
+      emergencyVisibilty: false,
+
+      patient: {
+        connect: { id: Number(patientId) }
+      },
+      doctor: {
+        connect: { id: doctor.id }
+      },
+      facility: {
+        connect: {
+          id: assignment.facilityId
+        }
+      }
+    }
   });
 }
 
+
 // 2. Get All Diagnoses for a Patient
 export async function getPatientDiagnoses({ patientId, user }) {
-
   if (user.role === "PATIENT" && user.patient.id !== Number(patientId)) {
     
     throw new Error("Unauthorized: Patients can only view their own diagnoses");
@@ -76,7 +90,7 @@ export async function getDiagnosisById({ id, user }) {
   if (user.role === "PATIENT" && diagnosis.patient.userId !== user.id) {
     throw new Error("Unauthorized");
   }
-
+  
   if (user.role === "DOCTOR") {
     
     const doctor = await prisma.doctor.findUnique({ where: { userId: Number(user.id) } });
@@ -87,24 +101,46 @@ export async function getDiagnosisById({ id, user }) {
   return diagnosis;
 }
 
-// 4. Update Diagnosis
-export async function updateDiagnosis({ id, user,data}) {
-  const diagnosis = await prisma.diagnosis.findUnique({ where: { id: Number(id) } });
-   let doctorid 
-  if (!diagnosis) throw new Error("Diagnosis not found");
-        const doctor = await prisma.doctor.findUnique({ where: { userId: Number(user.id) } });
-        doctorid = doctor.id
-        if (!doctor) throw new Error("Unauthorized: User is not a doctor");
-       await validateAssignment(doctor.id, diagnosis.patientId);
 
-  if (user.role !== "DOCTOR" || diagnosis.doctorId!== doctorid) {
+
+export async function updateDiagnosis({ id, user, data }) {
+  // 1️ Find diagnosis
+  const diagnosis = await prisma.diagnosis.findUnique({
+    where: { id: Number(id) }
+  });
+
+  if (!diagnosis) {
+    throw new Error("Diagnosis not found");
+  }
+
+  // 2️ Ensure user is doctor
+  if (user.role !== "DOCTOR") {
+    throw new Error("Unauthorized: Only doctors can update diagnoses");
+  }
+
+  const doctor = await prisma.doctor.findUnique({
+    where: { userId: Number(user.id) }
+  });
+
+  if (!doctor) {
+    throw new Error("Unauthorized: User is not a doctor");
+  }
+
+  // 3️ Ensure same doctor
+  if (diagnosis.doctorId !== doctor.id) {
     throw new Error("Unauthorized: Only the original doctor can update this");
   }
+
+  // 4️ Validate doctor ↔ patient assignment
+  await validateAssignment(doctor.id, diagnosis.patientId);
+
+  // 5 Update diagnosis
   return prisma.diagnosis.update({
     where: { id: Number(id) },
-    data: { diagnosisText, treatmentPlan },
+    data
   });
 }
+
 
 
 // 5. Delete Diagnosis
@@ -126,4 +162,25 @@ export async function deleteDiagnosis({ id, user }) {
   
 
   return prisma.diagnosis.delete({ where: { id: Number(id) } });
+}
+
+// diagnoses.service.js
+
+export async function toggleEmergencyVisibility({ id, user }) {
+  //  Find diagnosis
+  const diagnosis = await prisma.diagnosis.findUnique({
+    where: { id: Number(id) }
+  });
+
+  if (!diagnosis) {
+    throw new Error("Diagnosis not found");
+  }
+
+ 
+  return prisma.diagnosis.update({
+    where: { id: diagnosis.id },
+    data: {
+      emergencyVisibilty: !diagnosis.emergencyVisibilty
+    }
+  });
 }

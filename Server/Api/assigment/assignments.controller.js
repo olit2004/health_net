@@ -5,14 +5,15 @@ import { createAssignment, deleteAssignment,getAssignmentsByUser } from "../../S
 
 export async function createAssignmentController(req, res) {
   try {
-    const { doctorI, patientId } = req.body;
+    const { doctorId, patientId } = req.body;
     const adminId = req.user.id
+    const  facilityId= req.facilityId
 
     if (!adminId) {
       return res.status(403).json({ success: false, message: "Forbidden: onot authorized to assign " });
     }
 
-    const assignment = await createAssignment(doctorId, patientId, adminId);
+    const assignment = await createAssignment(doctorId, patientId, adminId,facilityId);
     res.json({ success: true, assignment });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -22,7 +23,7 @@ export async function createAssignmentController(req, res) {
 export async function deleteAssignmentController(req, res) {
   try {
     const { id } = req.params;
-    const adminId = req.user.admin?.id;
+    const adminId = req.user.id;
 
     if (!adminId) {
       return res.status(403).json({ success: false, message: "Forbidden: only admins can delete" });
